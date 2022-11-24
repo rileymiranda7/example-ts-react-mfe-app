@@ -1,10 +1,13 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
+const { dependencies } = require("./package.json");
 
 module.exports = {
-  entry: path.join(__dirname, "./src/index.tsx"),
-  output: {
-    path:path.resolve(__dirname, "dist"),
+  entry: "./src/index",
+  mode: "development",
+  devServer: {
+    port: 3000,
   },
   mode: 'development',
   module: {
@@ -37,6 +40,23 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: path.join(__dirname, "./public/index.html"),
     }),
+    new ModuleFederationPlugin({
+      name: "rileysAppshell",
+      remotes: {
+        "rileysRemoteMfe": `rileysRemote@http://localhost:4000/remoteEntry.js`
+      },
+      shared: {
+        ...dependencies,
+        react: {
+          singleton: true,
+          requiredVersion: dependencies["react"],
+        },
+        "react-dom": {
+          singleton: true,
+          requiredVersion: dependencies["react-dom"],
+        },
+      },
+    })
   ],
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.json']
